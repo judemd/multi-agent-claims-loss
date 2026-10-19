@@ -1,0 +1,29 @@
+[
+  {
+    "bulletin_id": "B1",
+    "start": "2026-01-10T09:00:00Z",
+    "end": "2026-01-10T14:00:00Z",
+    "x": 22.0,
+    "y": 19.0,
+    "radius_km": 7.0,
+    "description": "Unconfirmed reports of power outage in part of the area."
+  },
+  {
+    "bulletin_id": "B2",
+    "start": "2026-01-13T09:00:00Z",
+    "end": "2026-01-13T14:00:00Z",
+    "x": 57.0,
+    "y": 59.0,
+    "radius_km": 7.0,
+    "description": "Unconfirmed reports of surface water flood in part of the area."
+  },
+  {
+    "bulletin_id": "B4",
+    "start": "2026-02-04T09:00:00Z",
+    "end": "2026-02-04T10:00:00Z",
+    "x": 5.0,
+    "y": 90.0,
+    "radius_km": 3.0,
+    "description": "An unverified electrical disturbance was reported near a remote maintenance depot."
+  }
+]

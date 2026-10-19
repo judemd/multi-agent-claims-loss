@@ -1,0 +1,13 @@
+.git
+.venv
+.python
+.uv-cache
+.env
+data
+tests
+__pycache__
+.pytest_cache
+*.egg-info
+fixtures/ground_truth
+.test-tmp*
+*.log
