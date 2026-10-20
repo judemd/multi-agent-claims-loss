@@ -11,6 +11,10 @@ results. An offline correction now validates explicit member references and sour
 quotations. The revised reporter subsequently passed one isolated live test in
 27.70 seconds with 30 exact source quotations and valid member references. A fresh
 reliable full workflow remains unverified. Public paid calls remain disabled.
+Offline linked-checkpoint assembly now produces a pending-review Markdown and
+JSON artifact. Recovered development-fixture pair F1 is 0.929 versus baseline 0.760;
+this reused fixture is not a blind benchmark. The 44-test suite also checks
+assembly provenance and rejects invalid reporter references.
 
 ## Deployment verification — 20 October 2026
 

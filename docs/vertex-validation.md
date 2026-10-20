@@ -202,6 +202,55 @@ Public paid calls remain disabled and the deployed service was not changed.
 python -m scripts.diagnose_reporter data/live-tests/20261020T094655Z.json data/live-tests/20261020T095303Z-challenger-diagnostic.json --inspect-only
 ```
 
+## Recovered result assembled and evaluated offline
+
+`scripts/assemble_recovered.py` validates the linked investigation, challenger and
+revised reporter checkpoints, recalculates financial totals, and writes review
+JSON and Markdown. Report schema, exact source quotations, cluster membership,
+generation settings and checkpoint hashes are rechecked before labels are used
+for evaluation. The output is marked `recovered_complete`, with origin explicitly
+recorded as linked checkpoints and `reviewer_approved=false`. It is not imported
+into the hosted database or treated as a fresh completed live run.
+
+Local artifacts: `data/live-tests/recovered-50.json` and `recovered-50.md`.
+Three proposed clusters contain 30 notifications, with 20 unassigned and three
+unresolved challenger objections. The fixture has 135 canonical true pairs:
+
+| Metric | Rules baseline | Recovered agents |
+|---|---:|---:|
+| Pair precision | 0.977 | 1.000 |
+| Pair recall | 0.622 | 0.867 |
+| Pair F1 | 0.760 | 0.929 |
+| Candidate recall | 0.822 | 0.822 |
+| Incorrect merged pairs | 2 | 0 |
+| Missed true pairs | 51 | 18 |
+
+The 18 missed agent pairs involve unassigned C012 and C022. Candidate edges are
+leads rather than a hard membership gate; agents see all claims, so their pair
+recall can exceed candidate recall. Both comparisons use identical inputs and no
+human edits. This fixture was reused during debugging and is a development result,
+not a blind benchmark, proof of real-world accuracy or measured time savings.
+
+Operational amounts preserve suspected duplicates until a reviewer confirms them:
+
+| Cluster | Reported amount | Hidden canonical reference (evaluation only) | Missing amounts |
+|---|---:|---:|---:|
+| CL_01 | GBP 325,347 | GBP 277,424 | 0 |
+| CL_02 | GBP 251,042 | GBP 223,212 | 0 |
+| CL_03 | GBP 214,319 | GBP 214,319 | 1 |
+
+These differences reflect unconfirmed duplicates, not arithmetic errors. Hidden
+labels do not alter the operational totals or approve the proposed groups. The
+review artifact lists explicit membership, source quotations, hypotheses, missing
+information and unresolved objections. All 44 offline tests pass, including linked
+assembly, mismatched-source denial and invalid reporter-reference denial. No paid
+calls or deployment changes were made for assembly. Next is human review of the
+recovered artifact; fresh-run reliability and broader blind evaluation remain open.
+
+```powershell
+python -m scripts.assemble_recovered data/live-tests/20261020T094655Z.json data/live-tests/20261020T095303Z-challenger-diagnostic.json data/live-tests/20261020T101151Z-reporter-diagnostic.json
+```
+
 The remaining sections retain the earlier observations for context.
 
 ## Changes

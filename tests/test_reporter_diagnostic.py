@@ -8,6 +8,7 @@ from claimcascade.schemas import Report
 from claimcascade.synthetic import generate
 from scripts.diagnose_challenger import prepare as prepare_challenger
 from scripts.diagnose_reporter import prepare
+from scripts.assemble_recovered import assemble, markdown
 
 
 def test_reporter_rejects_mismatched_sources_and_incomplete_explanations(tmp_path):
@@ -35,6 +36,31 @@ def test_reporter_rejects_mismatched_sources_and_incomplete_explanations(tmp_pat
     assert request[3]['challenge']['objections'][0]['concern'] == 'Unresolved'
     explanation = dict(cluster_id='event-a', observed_facts=[], hypotheses=[], missing_information=[])
     request[4](Report(explanations=[explanation]))
+    reporter = tmp_path/'reporter.json'
+    reporter_data = dict(status='complete', stage='reporter', seed=42, held_out=False,
+        claim_count=50, model='gemini-3.5-flash', request_policy=dict(temperature=1.0, thinking_level='LOW'),
+        source_sha256=hashlib.sha256(source.read_bytes()).hexdigest(),
+        challenger_source_sha256=hashlib.sha256(challenger.read_bytes()).hexdigest(),
+        payload_sha256=hashlib.sha256(json.dumps(request[3]).encode()).hexdigest(),
+        schema_validated_outputs={'reporter':{'explanations':[explanation]}})
+    reporter.write_text(json.dumps(reporter_data))
+    recovered = assemble(source, challenger, reporter)
+    assert recovered['status'] == 'recovered_complete'
+    assert recovered['reviewer_approved'] is False
+    assert recovered['totals']['event-a'] == total(claims, members)
+    assert 'Unresolved' in markdown(recovered)
+    assert 'not a fresh end-to-end run' in markdown(recovered)
+    assert ', '.join(members) in markdown(recovered)
+    reporter_data['payload_sha256'] = 'wrong'
+    reporter.write_text(json.dumps(reporter_data))
+    with pytest.raises(ValueError, match='not linked'):
+        assemble(source, challenger, reporter)
+    reporter_data['payload_sha256'] = hashlib.sha256(json.dumps(request[3]).encode()).hexdigest()
+    reporter_data['schema_validated_outputs']['reporter']['explanations'][0]['hypotheses'] = [
+        dict(text='Unproven', claim_ids=[claims[2].claim_id])]
+    reporter.write_text(json.dumps(reporter_data))
+    with pytest.raises(ValueError, match='invalid membership'):
+        assemble(source, challenger, reporter)
     for explanations in [[], [explanation, explanation], [dict(explanation, cluster_id='wrong')]]:
         with pytest.raises(ValueError, match='exactly'):
             request[4](Report(explanations=explanations))
