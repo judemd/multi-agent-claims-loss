@@ -235,8 +235,10 @@ run completed all four agents and passed evidence/membership checks after adding
 pacing and lower thinking. A recovered 50-claim run validated all extraction
 batches and the investigator, then timed out in the challenger after 90 seconds.
 An isolated challenger diagnostic subsequently completed in 8.92 seconds with
-validated objections, without reproducing the timeout. The reporter was not
-called; the full workflow remains incomplete.
+validated objections, without reproducing the timeout. The isolated reporter
+returned in 21.53 seconds and passed schema checks, but manual review found
+inaccurate membership ranges in its prose. Its output is not approved; the full
+workflow remains unvalidated.
 See [the live validation record](docs/vertex-validation.md).
 The public container remains pinned to the earlier rules-only release; these new
 live controls have not been deployed there. Model behaviour is not deterministic even at zero

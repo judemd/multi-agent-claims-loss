@@ -6,7 +6,8 @@
 remains unchanged and rules-only. The latest offline suite passes **32 tests**.
 
 The initial follow-up allowed 12 attempts. The subsequently approved four-call
-recovery raised the combined ceiling to 13; all 13 attempts have now started:
+recovery raised the combined ceiling to 13; a separately approved reporter call
+raised it to 14. All 14 attempts have now started:
 
 | Request group | Attempts started | Outcome |
 |---|---:|---|
@@ -19,7 +20,8 @@ recovery raised the combined ceiling to 13; all 13 attempts have now started:
 | Instrumented ADK diagnostic of that next batch | 1 | Completed in 6.30 seconds; first SDK chunk and ADK content both at 4.73 seconds |
 | Recovery from four validated extraction batches, retries disabled | 3 | Last extractor and investigator validated; challenger timed out at 90.03 seconds; reporter not called |
 | Isolated, instrumented challenger using the unchanged validated input | 1 | Completed and validated in 8.92 seconds; first SDK chunk and ADK content both at 7.48 seconds |
-| **Total** | **13** | **No completed full-workflow result or accuracy metrics** |
+| Isolated reporter from linked checkpoints | 1 | Returned in 21.53 seconds; schema passed but manual review found inaccurate membership statements |
+| **Total** | **14** | **No approved full-workflow result or accuracy metrics** |
 
 The approved allowance is exhausted. After the recovery stopped on its first
 failure, the final call was used for the separately agreed isolated challenger
@@ -102,7 +104,7 @@ SDK/ADK event ordering and timeout evidence, with no paid calls. Operators can u
 `python -m scripts.diagnose_challenger SOURCE --inspect-only` to validate and measure
 the input without inference; omitting that flag performs one gated paid request.
 
-## Reporter prepared offline
+## Reporter diagnostic: structural pass, factual review failed
 
 `scripts/diagnose_reporter.py` reconstructs the reporter's production input from
 the validated investigation and isolated challenger checkpoints. Before inference
@@ -116,10 +118,31 @@ Offline inspection passed for three proposals and three objections. The input is
 4,416 bytes of proposals, 900 bytes of challenge and 404 bytes of totals, plus JSON
 keys/separators. The script's `--inspect-only` mode performs no model calls. Tests
 reject mismatched checkpoint links, missing/duplicate/unknown report explanations
-and verify that amounts and objections are preserved. No additional paid call has
-been made. A one-call, no-retry, 90-second reporter diagnostic is ready but requires
-an extension of the exhausted call allowance. It would validate the final isolated
-stage, not demonstrate that a fresh full workflow reliably finishes.
+and verify that amounts and objections are preserved.
+
+The user then approved one additional reporter call, with no retries and a
+90-second timeout. It completed in 21.532 seconds: SDK entry at 0.954 seconds,
+first SDK chunk and ADK content both at 17.547 seconds, and stream end/final ADK
+output both at 21.532 seconds. Three explanations passed the schema and exact
+cluster-ID coverage checks. Provider usage was 2,309 prompt, 726 answer and 708
+thinking tokens (3,743 total), not an invoiced cost. Local evidence is
+`data/live-tests/20261020T095755Z-reporter-diagnostic.json`.
+
+**Manual factual review failed.** The CL_02 explanation says "C011 to C020",
+which includes C012 even though it is unassigned. CL_03 says "C021 to C030",
+which similarly includes unassigned C022. These statements do not change the
+structured membership or Python totals, but the narrative is inaccurate and
+must not be treated as approved. Existing Report validation checks schema and
+cluster-ID coverage, not semantic fidelity of free text. No generated output was
+silently edited or accepted as a completed investigation.
+
+Every stage has now returned structurally valid output for this fixture through
+recovery and isolated diagnostics, but a fresh reliable full workflow has not
+been demonstrated, and the reporter's content needs correction. Next work should
+ground report statements in structured member references and validate those
+references, with deterministic member/amount rendering. This can be developed
+offline without extending the exhausted paid-call allowance. No deployment or
+public paid access was changed.
 
 ```powershell
 python -m scripts.diagnose_reporter data/live-tests/20261020T094655Z.json data/live-tests/20261020T095303Z-challenger-diagnostic.json --inspect-only
