@@ -234,7 +234,9 @@ browser workflow have passed external integration checks. A 10-claim live Vertex
 run completed all four agents and passed evidence/membership checks after adding
 pacing and lower thinking. A recovered 50-claim run validated all extraction
 batches and the investigator, then timed out in the challenger after 90 seconds.
-The reporter was not called; the full workflow remains incomplete.
+An isolated challenger diagnostic subsequently completed in 8.92 seconds with
+validated objections, without reproducing the timeout. The reporter was not
+called; the full workflow remains incomplete.
 See [the live validation record](docs/vertex-validation.md).
 The public container remains pinned to the earlier rules-only release; these new
 live controls have not been deployed there. Model behaviour is not deterministic even at zero

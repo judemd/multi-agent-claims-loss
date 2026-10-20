@@ -3,10 +3,10 @@
 ## Latest full-fixture follow-up
 
 **The 50-claim workflow is still not validated end to end.** The public service
-remains unchanged and rules-only. The latest offline suite passes **30 tests**.
+remains unchanged and rules-only. The latest offline suite passes **31 tests**.
 
 The initial follow-up allowed 12 attempts. The subsequently approved four-call
-recovery raised the combined ceiling to 13; 12 attempts have now started:
+recovery raised the combined ceiling to 13; all 13 attempts have now started:
 
 | Request group | Attempts started | Outcome |
 |---|---:|---|
@@ -18,12 +18,14 @@ recovery raised the combined ceiling to 13; 12 attempts have now started:
 | ADK SSE recovery using the three validated extraction batches | 1 | Next extraction batch timed out at 90.02 seconds |
 | Instrumented ADK diagnostic of that next batch | 1 | Completed in 6.30 seconds; first SDK chunk and ADK content both at 4.73 seconds |
 | Recovery from four validated extraction batches, retries disabled | 3 | Last extractor and investigator validated; challenger timed out at 90.03 seconds; reporter not called |
-| **Total** | **12** | **No completed full-workflow result or accuracy metrics** |
+| Isolated, instrumented challenger using the unchanged validated input | 1 | Completed and validated in 8.92 seconds; first SDK chunk and ADK content both at 7.48 seconds |
+| **Total** | **13** | **No completed full-workflow result or accuracy metrics** |
 
-One of the four newly authorized recovery calls remains unused. The run stopped
-on its first failure as promised; no further calls were made. Recovery currently
-supports extraction outputs only, so completing another run would require more
-than just rerunning the challenger. No public model access was enabled.
+The approved allowance is exhausted. After the recovery stopped on its first
+failure, the final call was used for the separately agreed isolated challenger
+diagnostic. Recovery currently supports extraction outputs only; no automatic
+replay of investigator or challenger outputs was added. Public model access
+remains disabled.
 Timeout outcomes and their final billable token usage are unknown.
 
 Corrections and safeguards implemented:
@@ -56,6 +58,7 @@ Local evidence (ignored by Git): `20261020T090931Z.json`,
 under `data/live-tests`. The instrumented diagnostic is
 `20261020T094238Z-adk-diagnostic.json`. The latest recovery is
 `20261020T094655Z.json`. The rejected MIME diagnostic has console evidence only.
+The isolated challenger diagnostic is `20261020T095303Z-challenger-diagnostic.json`.
 The recovery source-file hashes remain in its progress record.
 
 The earlier completed 10-claim result was independently rechecked offline:
@@ -75,8 +78,29 @@ ADK content before its 90.03-second timeout. No provider status code was returne
 and final token usage for that uncertain request is unknown. The reporter was not
 called. Investigator output is retained locally as an incomplete checkpoint, not
 an approved or completed investigation. No accuracy comparison is reported from
-this partial workflow. Next work should diagnose the challenger request in isolation
-or improve bounded request size before funding another full workflow attempt.
+this partial workflow.
+
+The subsequent isolated challenger diagnostic reconstructed the same input from
+all five extraction checkpoints and the investigator proposal, revalidating exact
+source evidence and membership before any network access. It retained the production
+instruction, output schema, model, temperature, thinking level and streaming mode.
+The input components measured 21,236 bytes of claims, 9,562 of facts, 638 of bulletins,
+12,594 of candidate edges and 4,416 of proposals (plus JSON keys/separators). These
+are byte counts, not token counts or evidence that input size caused a timeout.
+The diagnostic records source and payload SHA-256 hashes locally.
+
+This single call reached the SDK at 0.969 seconds, received its first chunk and
+emitted first ADK content at 7.484 seconds, ended the SDK stream at 8.906 seconds
+and emitted the ADK final at 8.922 seconds. Schema and objection membership checks
+passed. There is no evidence of substantial ADK aggregation delay on this attempt.
+The intermittent timeout did not reproduce; network/provider scheduling and other
+causes remain unresolved. The reporter remains untested on the 50-claim result,
+and these separate checkpoints do not constitute a completed full workflow.
+
+Offline diagnostic tests cover source reconstruction, objection membership denial,
+SDK/ADK event ordering and timeout evidence, with no paid calls. Operators can use
+`python -m scripts.diagnose_challenger SOURCE --inspect-only` to validate and measure
+the input without inference; omitting that flag performs one gated paid request.
 
 The remaining sections retain the earlier observations for context.
 
