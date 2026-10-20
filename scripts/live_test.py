@@ -3,6 +3,7 @@ import json
 import os
 import argparse
 import logging
+import hashlib
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -21,6 +22,7 @@ def main():
     parser.add_argument('--seed',type=int,default=42)
     parser.add_argument('--held-out',action='store_true')
     parser.add_argument('--claim-count',type=int,default=50,choices=range(1,51))
+    parser.add_argument('--reuse-extractions',type=Path,action='append',default=[],help='Explicitly reuse source-validated extraction checkpoints only')
     args = parser.parse_args()
     # Request events below retain structured failures without repeated ADK stack traces.
     logging.getLogger('google_adk').setLevel(logging.CRITICAL)
@@ -38,8 +40,25 @@ def main():
     folder = Path('data/live-tests')
     folder.mkdir(parents=True,exist_ok=True)
     path = folder/(datetime.now(timezone.utc).strftime('%Y%m%dT%H%M%SZ')+'.json')
+    recovered,provenance={},[]
+    model=os.getenv('GEMINI_MODEL','gemini-3.5-flash')
+    for source in args.reuse_extractions:
+        data=json.loads(source.read_text(encoding='utf-8'))
+        if any(data.get(k)!=v for k,v in [('seed',args.seed),('held_out',args.held_out),('claim_count',args.claim_count)]):
+            raise ValueError('Checkpoint dataset identity differs')
+        if data.get('model',model)!=model:
+            raise ValueError('Checkpoint model differs')
+        if any(data.get('request_policy',{}).get(k)!=getattr(policy,k) for k in ('temperature','thinking_level')):
+            raise ValueError('Checkpoint generation settings differ')
+        outputs={k:v for k,v in data.get('schema_validated_outputs',{}).items() if k.startswith('extractor_')}
+        if not outputs or recovered.keys() & outputs.keys():
+            raise ValueError('Checkpoint stages are absent or overlap')
+        recovered.update(outputs)
+        provenance.append({'file':str(source),'sha256':hashlib.sha256(source.read_bytes()).hexdigest(),
+                           'stages':list(outputs),'model_recorded':data.get('model') is not None})
     progress = {'status':'running','claim_count':len(claims),'seed':args.seed,'held_out':args.held_out,
-                'request_policy':policy.model_dump(),'events':[],'schema_validated_outputs':{},'telemetry':[]}
+                'model':model,'checkpoint_sources':provenance,
+                'request_policy':policy.model_dump(),'events':[],'schema_validated_outputs':dict(recovered),'telemetry':[]}
     def persist():
         path.write_text(json.dumps(progress,indent=2),encoding='utf-8')
     def request_event(event):
@@ -52,7 +71,7 @@ def main():
         persist()
     try:
         result = analyse_live(claims,bulletins,edges,os.getenv('GEMINI_MODEL','gemini-3.5-flash'),on_stage=stage_started,
-                              request_policy=policy,on_request=request_event,on_checkpoint=checkpoint)
+                              request_policy=policy,on_request=request_event,on_checkpoint=checkpoint,completed_extractions=recovered)
     except Exception as error:
         evidence = {'status':'failed','stages_started':stages,'error_type':type(error).__name__,'provider_code':provider_status(error)}
         progress.update(evidence)
@@ -63,6 +82,7 @@ def main():
     result['baseline_metrics'] = evaluate(baseline(claims,edges),edges,truth,[c.claim_id for c in claims])
     result['status']='complete'
     result.update(claim_count=len(claims),seed=args.seed,held_out=args.held_out)
+    result.update(model=model,checkpoint_sources=provenance)
     path.write_text(json.dumps(result,indent=2),encoding='utf-8')
     print(json.dumps({'result_file':str(path),'clusters':len(result['proposals']['clusters']),
                       'logical_calls':len(result['telemetry']),'provider_attempts':len(result['request_attempts']),

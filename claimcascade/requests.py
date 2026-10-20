@@ -10,6 +10,7 @@ from pydantic import BaseModel, ConfigDict, Field
 class RequestPolicy(BaseModel):
     model_config = ConfigDict(extra='forbid',frozen=True)
     thinking_level: Literal['LOW','MEDIUM','HIGH'] | None = 'LOW'
+    temperature: float = Field(default=1.0,ge=0,le=2,allow_inf_nan=False)
     min_interval_seconds: float = Field(default=30.0,ge=0,le=60,allow_inf_nan=False)
     max_attempts: int = Field(default=12,ge=1,le=12)
     retries_per_stage: int = Field(default=1,ge=0,le=1)

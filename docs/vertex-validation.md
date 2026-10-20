@@ -1,5 +1,60 @@
 # Vertex reliability investigation — 20 October 2026
 
+## Latest full-fixture follow-up
+
+**The 50-claim workflow is still not validated end to end.** The public service
+remains unchanged and rules-only. The latest offline suite passes **29 tests**.
+
+The approved follow-up stayed below its combined 12-generation-attempt ceiling:
+
+| Request group | Attempts started | Outcome |
+|---|---:|---|
+| Final-controls run, temperature 0 | 1 | First extraction batch timed out at 90.02 seconds |
+| Temperature corrected to 1.0 | 1 | Model returned in 9.05 seconds; narrative evidence validation rejected structured-field quotations |
+| Narrative-only inputs and source-constrained quote schema | 3 | First two extraction batches validated in 10.17 and 20.62 seconds; third timed out at 90 seconds |
+| Direct SDK streaming diagnostic, missing MIME | 1 | Rejected with HTTP 400 before useful generation; counted toward the ceiling |
+| Corrected JSON streaming diagnostic | 1 | Stalled third batch completed in 5.38 seconds; first chunk at 3.88 seconds; ten facts validated |
+| ADK SSE recovery using the three validated extraction batches | 1 | Next extraction batch timed out at 90.02 seconds |
+| **Total** | **8** | **No full-run proposals, totals or metrics produced** |
+
+Four attempts remain unused. At least five successful calls would be needed from
+the current recovery point, so no further calls were made under this allowance.
+Timeout outcomes and their final billable token usage are unknown.
+
+Corrections and safeguards implemented:
+
+- Removed the forced temperature 0 setting. Google's
+  [Gemini 3 guidance](https://docs.cloud.google.com/gemini-enterprise-agent-platform/models/start/get-started-with-gemini-3?hl=en)
+  recommends 1.0 and warns that lower temperatures can cause looping or degraded
+  performance. This was a configuration error, not proof of the timeout's cause.
+- Extractors now see only claim IDs and narratives, with IDs and whole-source
+  quotes constrained by schema. The investigator retains the original structured
+  fields and must record discrepancies; validation was not relaxed.
+- Enabled ADK SSE mode. The direct SDK diagnostic used a shorter equivalent task
+  instruction, so its success does not prove that streaming alone resolves latency.
+- Added explicit operator-only extraction recovery with source/batch validation,
+  dataset/generation-policy checks and source-file/output hashes. No automatic
+  replay of uncertain requests or reuse of prior proposals/approvals was added.
+- Added first-ADK-content timing instrumentation for a future diagnostic; it was
+  added after the last failed request and has not been observed live yet.
+- Verified ADK's real Gemini stream aggregator offline with a stubbed SDK transport.
+  All eight stages finish, and temperature, thinking level, JSON output and disabled
+  continuation reach the assembled request correctly. This does not establish the
+  cause of the live timeouts.
+
+Local evidence (ignored by Git): `20261020T090931Z.json`,
+`20261020T091248Z.json`, `20261020T091537Z.json`,
+`20261020T092158Z-stream-diagnostic.json`, and `20261020T092442Z.json`
+under `data/live-tests`. The rejected MIME diagnostic has console evidence only.
+The recovery source-file hashes remain in its progress record.
+
+The earlier completed 10-claim result was independently rechecked offline:
+source evidence, membership and integer-pence financial aggregation checks passed.
+There is no new 50-claim accuracy result. A future test should isolate a stalled
+ADK batch with the new timing instrumentation before funding another full run.
+
+The remaining sections retain the earlier observations for context.
+
 ## Changes
 
 - Global endpoint retained. The original error was PayGo-style `429 RESOURCE_EXHAUSTED`.
@@ -75,8 +130,8 @@ CONTINUATION response and confirms only one generation request occurs with
 automatic continuation disabled (`automatic_continuation=False`).
 
 The public Cloud Run image has not been updated or enabled for paid analysis.
-The remaining live check is a full 50-notification run with the final configuration,
-followed by broader held-out evaluation before enabling any public paid access.
+The remaining live check is a successful full 50-notification run, followed by
+broader held-out evaluation before enabling any public paid access.
 
 References: [Google 429 guidance](https://docs.cloud.google.com/vertex-ai/generative-ai/docs/error-code-429),
 [thinking configuration](https://docs.cloud.google.com/gemini-enterprise-agent-platform/models/thinking).

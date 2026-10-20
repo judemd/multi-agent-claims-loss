@@ -108,13 +108,30 @@ The default Gemini 3.5 configuration uses `LOW` thinking to reduce latency; it
 does not request internal thought text. This is a reasoning level, not a guaranteed
 token cap or response-time guarantee. For models without thinking-level support,
 configure `RequestPolicy(thinking_level=None)` instead.
+Temperature defaults to `1.0`, following Google's Gemini 3 guidance; lower values
+can cause looping or degraded performance. This configuration is included in the
+frozen live-run policy. Exact excerpts and memberships remain deterministically
+validated regardless of sampling temperature.
+
+The extractor receives only claim IDs and narratives. Its generated schema limits
+IDs and verbatim quotes to that batch's sources, preventing structured-field text
+from being presented as a narrative quote. The investigator receives the original
+structured fields alongside extracted narrative facts and records contradictions.
+ADK requests use SSE streaming. Operator diagnostics can record the first ADK
+content event without logging response text. This helps distinguish missing output
+from later stream/validation delays; it does not guarantee provider latency.
 
 The operator test accepts `--min-interval`, `--max-attempts` (hard maximum 12),
 `--seed`, `--held-out` and `--claim-count` (1–50),
 and saves attempt events, usage and schema-validated stage outputs locally as it
 runs. Schema validation alone does not establish evidence or membership validity;
 the pipeline still checks those before subsequent stages. Partial output files
-are diagnostic evidence, never silently resumed or fed into another paid run.
+are diagnostic evidence and never silently resumed. An operator may explicitly
+pass `--reuse-extractions FILE` for source-validated extraction outputs only.
+Dataset identity and generation settings must match, each batch is revalidated
+before any request, and file/output hashes record lineage. Proposals and reviewer
+approvals are never recovered this way. Older files without model metadata are
+marked in provenance and require the operator to establish their model externally.
 
 ## Matching and financial rules
 
@@ -215,8 +232,10 @@ claims, personal information or confidential business data into the public demo.
 The container build, PostgreSQL connectivity, Cloud Run deployment and anonymous
 browser workflow have passed external integration checks. A 10-claim live Vertex
 run completed all four agents and passed evidence/membership checks after adding
-pacing and lower thinking. A paced 50-claim run timed out in its third extraction
-batch, so full-size reliability remains unverified. See [the live validation record](docs/vertex-validation.md).
+pacing and lower thinking. Full 50-claim validation still fails on live extraction
+timeouts, including a recovery attempt using revalidated extraction checkpoints.
+An isolated SDK stream completed one stalled batch, but the ADK live run remains
+incomplete. See [the live validation record](docs/vertex-validation.md).
 The public container remains pinned to the earlier rules-only release; these new
 live controls have not been deployed there. Model behaviour is not deterministic even at zero
 temperature. Exact excerpts do not guarantee sound causality; the human reviewer
