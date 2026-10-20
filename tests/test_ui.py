@@ -21,6 +21,20 @@ def test_rules_workflow_and_rerun(monkeypatch,tmp_path):
     next(b for b in app.button if b.label=='Analyse').click().run()
     assert len(store.list_runs())==1
     assert not app.exception
+    assert not app.get('json')
+    run_id = store.list_runs()[0]['id']
+    app.session_state[f'duplicates-{run_id}-0'] = dict(edited_rows={0:{'duplicate':'C049','canonical':'C004'}}, added_rows=[], deleted_rows=[])
+    next(b for b in app.button if b.label=='Save review revision').click().run()
+    assert not app.exception
+    assert store.history(run_id)[-1]['payload']['duplicates'] == {'C049':'C004'}
+    next(b for b in app.button if b.label=='Save review revision').click().run()
+    assert store.history(run_id)[-1]['payload']['duplicates'] == {'C049':'C004'}
+    next(c for c in app.checkbox if c.label=='Reveal hidden ground truth for this completed run').check().run()
+    assert not app.exception
+    assert not app.get('json')
+    tables = [frame.value for frame in app.dataframe]
+    assert any('Reported amount' in table.columns for table in tables)
+    assert any('F1' in table.columns for table in tables)
 
 
 @pytest.mark.parametrize('legacy', [False, True])

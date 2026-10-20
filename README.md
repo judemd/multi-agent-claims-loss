@@ -44,7 +44,9 @@ environment variables. Default persistence is `data/claimcascade.db`.
    Each group needs at least two underlying claims. Inspect original evidence and
    challenger objections before approving a live agent proposal.
 5. Confirm duplicates by mapping a duplicate notification ID to the chosen
-   canonical notification. That notification's reported amount is the explicit
+   canonical notification in the **Confirmed duplicates** table. The duplicate
+   controls use editable rows; no JSON syntax is needed.
+   That notification's reported amount is the explicit
    canonical amount choice; inspect conflicting amounts before confirming.
 6. Save the revision, inspect updated totals and history, then reveal ground truth
    in Evaluation. Download JSON and CSV reports without hidden labels.

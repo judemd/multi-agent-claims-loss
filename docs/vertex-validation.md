@@ -3,7 +3,7 @@
 ## Latest full-fixture follow-up
 
 **The 50-claim workflow is still not validated end to end.** The public service
-remains unchanged and rules-only. The latest offline suite passes **45 tests**.
+remains unchanged and rules-only. The latest offline suite passes **50 tests**.
 
 The initial follow-up allowed 12 attempts. The subsequently approved four-call
 recovery raised the combined ceiling to 13; a separately approved reporter call

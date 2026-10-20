@@ -1,6 +1,6 @@
 # Local validation — 19 October 2026
 
-Latest reliability follow-up: **45 offline tests passed** and all four agents
+Latest reliability follow-up: **50 offline tests passed** and all four agents
 completed on a 10-claim live synthetic sample. A recovered 50-claim run validated
 all extraction batches and the investigator, then timed out in the challenger.
 An isolated challenger diagnostic subsequently passed in 8.92 seconds. The isolated
@@ -15,6 +15,19 @@ Offline linked-checkpoint assembly now produces a pending-review Markdown and
 JSON artifact. Recovered development-fixture pair F1 is 0.929 versus baseline 0.760;
 this reused fixture is not a blind benchmark. The 44-test suite also checks
 assembly provenance and rejects invalid reporter references.
+
+## Readable local interface
+
+The local interface now presents amounts, memberships, bulletins, objections,
+duplicate candidates, review history, evaluation metrics and model activity using
+readable tables and text. Confirmed and dismissed duplicates use editable tables
+instead of JSON inputs. Underlying payloads and downloaded JSON remain unchanged.
+UI checks cover duplicate-table saves and preservation, evaluation without raw JSON
+widgets, and formatted currency totals. Checks against the existing local review
+database showed GBP 231,362, GBP 178,516 and GBP 187,278 (one missing amount in the
+last group), without adding revisions or changing saved decisions. No model calls
+or public deployment changes were made. Browser automation was unavailable in the
+local virtual environment; validation used Streamlit AppTest and the health endpoint.
 
 ## Deployment verification — 20 October 2026
 

@@ -13,6 +13,7 @@ from claimcascade.schemas import Bulletin, Claim, Settings, Proposals
 from claimcascade.reporting import validate_report
 from claimcascade.services import offline_analysis, review_revision
 from claimcascade.synthetic import generate
+from claimcascade.presentation import amount_row, group_rows, duplicate_rows, parse_duplicates, parse_dismissed, money
 
 load_dotenv()
 public_demo = os.getenv('CLAIMCASCADE_PUBLIC_DEMO','false').lower() == 'true'
@@ -25,6 +26,25 @@ st.info('Investigation aid. Shared-event groups do not determine coverage, liabi
 @st.cache_resource
 def database():
     return Store()
+
+
+def readable_table(rows, empty='None recorded.'):
+    if rows:
+        st.dataframe(rows, hide_index=True, width='stretch')
+    else:
+        st.caption(empty)
+
+
+def readable_pairs(pairs):
+    readable_table([{'First notification':a, 'Second notification':b} for a,b in pairs])
+
+
+def readable_duplicates(mapping):
+    readable_table([{'Duplicate notification':a, 'Canonical notification':b} for a,b in mapping.items()])
+
+
+def claim_text(label, ids):
+    st.write(f"{label} {', '.join(ids) if ids else 'None'}")
 
 
 store = database()
@@ -63,9 +83,11 @@ with data_tab:
             except Exception as exc:
                 st.error(str(exc))
     if 'dataset' in st.session_state:
-        st.dataframe(st.session_state.dataset, hide_index=True)
+        readable_table([{k.replace('_',' ').capitalize():(money(v) if v is not None else 'Unknown')
+                         if k == 'reported_amount_gbp' else v for k,v in row.items()}
+                        for row in st.session_state.dataset])
         with st.expander('Bulletin evidence (unconfirmed)'):
-            st.json(st.session_state.bulletins)
+            readable_table([{k.replace('_',' ').capitalize():v for k,v in b.items()} for b in st.session_state.bulletins], 'No bulletins supplied.')
         with st.form('analysis'):
             distance = st.number_input('Candidate distance (km)',value=10.0,min_value=0.1,max_value=150.0)
             hours = st.number_input('Incident interval gap (hours)',value=24.0,min_value=0.0,max_value=720.0)
@@ -147,15 +169,27 @@ with investigate_tab:
     timeline.update_layout(title='Reported incident timeline',height=500)
     st.plotly_chart(timeline,use_container_width=True)
     st.caption(f"{sum(c.incident_start is None for c in claims)} notifications have unknown incident times; notification times are not substituted.")
-    st.write('Unassigned claims:',result['proposals']['unassigned'])
+    claim_text(f"Unassigned claims ({len(result['proposals']['unassigned'])}):",result['proposals']['unassigned'])
     for cluster in proposals:
         with st.expander(f"{cluster['cluster_id']} · {cluster['description']}"):
-            st.write('Proposed membership:',cluster['members'])
-            st.json(result['totals'][cluster['cluster_id']])
-            st.write('Ambiguities:',cluster['ambiguities'])
+            claim_text('Proposed membership:',cluster['members'])
+            readable_table([amount_row(cluster['cluster_id'], result['totals'][cluster['cluster_id']])])
+            st.write('Ambiguities')
+            for ambiguity in cluster['ambiguities']:
+                st.write('• '+ambiguity)
+            if not cluster['ambiguities']:
+                st.caption('None recorded.')
             for e in cluster['evidence']:
                 st.write(f"{e['claim_id']}: {e['excerpt']}")
-            st.write('Challenger objections:',[o for o in result['challenge']['objections'] if o['cluster_id']==cluster['cluster_id']])
+            st.write('Challenger objections')
+            objections = [o for o in result['challenge']['objections'] if o['cluster_id']==cluster['cluster_id']]
+            for objection in objections:
+                st.write(objection['concern'])
+                claim_text('Suggested removals (not applied):', objection['suggested_removals'])
+                for number, split in enumerate(objection['suggested_splits'], 1):
+                    claim_text(f'Suggested split {number} (not applied):', split)
+            if not objections:
+                st.caption('None recorded.')
             if checked_report:
                 explanation = next(e for e in checked_report.explanations if e.cluster_id == cluster['cluster_id'])
                 st.write('Source observations:')
@@ -165,7 +199,7 @@ with investigate_tab:
                                           ('Missing information', explanation.missing_information)]:
                     st.write(label)
                     for statement in statements:
-                        st.write('Referenced claims:', statement.claim_ids)
+                        claim_text('Referenced claims:', statement.claim_ids)
                         st.write(statement.text)
 
 with review_tab:
@@ -175,47 +209,99 @@ with review_tab:
         rows = [dict(cluster_id='',claim_ids='',decision='pending',note='')]
     with st.form(f'review-{selected}-{len(revisions)}'):
         edited = st.data_editor(rows,num_rows='dynamic',key=f'members-{selected}-{len(revisions)}',use_container_width=True,
-            column_config={'decision':st.column_config.SelectboxColumn(options=['pending','approved','rejected'],required=True)})
-        st.write('Suspected duplicates (not automatically excluded):',suspected_duplicates(claims))
-        dup_text = st.text_area('Confirmed duplicates JSON: duplicate notification → canonical notification. The selected canonical amount is used.',value=json.dumps(review['duplicates']))
-        dismissed = st.text_area('Dismissed duplicate pairs JSON',value=json.dumps(review.get('dismissed_duplicates',[])))
+            column_config={'cluster_id':st.column_config.TextColumn('Group'),
+                           'claim_ids':st.column_config.TextColumn('Notifications',width='large'),
+                           'note':st.column_config.TextColumn('Review note',width='large'),
+                           'decision':st.column_config.SelectboxColumn('Decision',options=['pending','approved','rejected'],required=True)})
+        st.write('Suspected duplicates (not automatically excluded)')
+        readable_pairs(suspected_duplicates(claims))
+        st.write('Confirmed duplicates')
+        st.caption('Add one row per duplicate. The canonical notification supplies the amount; delete the row to undo confirmation.')
+        duplicate_edits = st.data_editor(duplicate_rows(review['duplicates']) or [{'duplicate':'','canonical':''}],
+            num_rows='dynamic', key=f'duplicates-{selected}-{len(revisions)}', width='stretch',
+            column_config={'duplicate':st.column_config.TextColumn('Duplicate notification'),
+                           'canonical':st.column_config.TextColumn('Canonical notification')})
+        st.write('Dismissed duplicate pairs')
+        dismissed_edits = st.data_editor([{'claim_a':a,'claim_b':b} for a,b in review.get('dismissed_duplicates',[])] or [{'claim_a':'','claim_b':''}],
+            num_rows='dynamic', key=f'dismissed-{selected}-{len(revisions)}', width='stretch',
+            column_config={'claim_a':st.column_config.TextColumn('First notification'),
+                           'claim_b':st.column_config.TextColumn('Second notification')})
         save = st.form_submit_button('Save review revision')
     if save:
         try:
             payload = {'groups':[dict(cluster_id=r['cluster_id'],members=[m.strip() for m in r['claim_ids'].split(',') if m.strip()],decision=r['decision'],note=r.get('note','')) for r in edited if r.get('cluster_id') or r.get('claim_ids')],
-                       'duplicates':json.loads(dup_text),'dismissed_duplicates':json.loads(dismissed)}
+                       'duplicates':parse_duplicates(duplicate_edits),'dismissed_duplicates':parse_dismissed(dismissed_edits)}
             payload = review_revision(payload,review if revisions else None,claims)
             store.save_review(selected,payload)
             st.success('Revision saved. Reopen or rerun to display the latest totals.')
             st.rerun()
         except Exception as exc:
             st.error(str(exc))
-    for group in review['groups']:
-        st.write(f"{group['cluster_id']} · {group['decision']}",total(claims,group['members'],review['duplicates']))
+    st.subheader('Review totals')
+    readable_table([amount_row(g['cluster_id'], total(claims,g['members'],review['duplicates']),g['decision']) for g in review['groups']])
     st.caption('Proposed totals appear in Event investigation. Only groups marked approved constitute reviewer-approved totals. Agent explanations remain attached to original proposals.')
     with st.expander('Immutable review history'):
-        st.json(revisions)
+        for revision in revisions:
+            st.write(f"Revision {revision['revision']} · {revision['created_at']}")
+            readable_table(group_rows(revision['payload']['groups']))
+            st.write('Confirmed duplicates')
+            readable_duplicates(revision['payload']['duplicates'])
+            st.write('Dismissed duplicate pairs')
+            readable_pairs(revision['payload'].get('dismissed_duplicates',[]))
+        if not revisions:
+            st.caption('No saved revisions yet.')
 
 with evaluation_tab:
     truth = result.get('evaluation_truth')
     if truth and st.checkbox('Reveal hidden ground truth for this completed run',key=f'reveal-{selected}'):
         st.warning('Ground truth is revealed. Do not use this fixture as an unseen benchmark after tuning against it.')
-        st.json(truth)
+        st.subheader('Hidden event labels')
+        readable_table([{'Notification':claim_id, 'Hidden event':event} for claim_id,event in sorted(truth['events'].items())])
+        st.write('Hidden duplicate reference')
+        readable_duplicates(truth.get('duplicates',{}))
+        st.caption(f"Synthetic seed: {truth.get('seed','Unknown')} · Held-out templates: {'Yes' if truth.get('held_out') else 'No'}")
         methods = {'Rules baseline':result['baseline'], 'Original analysis':[c['members'] for c in proposals],
                    'After review (excluding rejected)':[g['members'] for g in review['groups'] if g['decision']!='rejected'],
                    'Approved only':[g['members'] for g in review['groups'] if g['decision']=='approved']}
-        for name, groups in methods.items():
-            st.write(name,evaluate(groups,result['edges'],truth,lookup))
-        st.write('Financial canonicalisation check',financial_reference(claims,
-            [(g['cluster_id'],g['members']) for g in review['groups']],truth,review['duplicates']))
+        comparisons = {name:evaluate(groups,result['edges'],truth,lookup) for name,groups in methods.items()}
+        readable_table([{'Method':name, 'Precision':'N/A' if m['precision'] is None else f"{m['precision']:.3f}",
+            'Recall':'N/A' if m['recall'] is None else f"{m['recall']:.3f}",
+            'F1':'N/A' if m['f1'] is None else f"{m['f1']:.3f}",
+            'Candidate recall':'N/A' if m['candidate_recall'] is None else f"{m['candidate_recall']:.3f}",
+            'True pairs':m['true_pairs'], 'Predicted pairs':m['predicted_pairs'],
+            'Incorrect merges':len(m['incorrect_merges']), 'Missed pairs':len(m['missed_connections'])} for name,m in comparisons.items()])
+        for name, metrics in comparisons.items():
+            with st.expander(f'{name}: pair details'):
+                st.write('Incorrectly merged pairs')
+                readable_pairs(metrics['incorrect_merges'])
+                st.write('Missed connections')
+                readable_pairs(metrics['missed_connections'])
+        st.subheader('Financial canonicalisation check')
+        references = financial_reference(claims,[(g['cluster_id'],g['members']) for g in review['groups']],truth,review['duplicates'])
+        readable_table([{'Group':r['cluster_id'], 'Review amount':money(r['reported']['known_amount_gbp']),
+            'Canonical reference':money(r['hidden_canonical_reference']['known_amount_gbp']),
+            'Review missing amounts':r['reported']['missing_amount_count'],
+            'Reference missing amounts':r['hidden_canonical_reference']['missing_amount_count'],
+            'Review underlying claims':r['reported']['underlying_claim_count'],
+            'Reference underlying claims':r['hidden_canonical_reference']['underlying_claim_count'],
+            'Matches reference':'Yes' if r['matches_reference'] else 'No'} for r in references])
         st.caption('The financial reference uses hidden canonical notification labels. Differences may reflect unresolved duplicate decisions; they do not imply coverage or payout errors.')
         st.caption('Unassigned claims predict no pairs. Hidden duplicate labels canonicalise notifications only during evaluation. N/A means an empty metric denominator. Pending groups are included only in the explicitly labelled after-review view.')
     elif not truth:
         st.info('No matching ground truth is attached to this uploaded dataset. Accuracy metrics are unavailable.')
-    st.write('Model telemetry:',result['telemetry'])
+    st.subheader('Model activity')
+    activity = []
+    for stage in result['telemetry']:
+        usage = next((u for u in reversed(stage.get('usage',[])) if u.get('total_token_count') is not None),{})
+        activity.append({'Stage':stage['stage'], 'Seconds':stage['latency_seconds'],
+            'Prompt tokens':usage.get('prompt_token_count'), 'Answer tokens':usage.get('candidates_token_count'),
+            'Thinking tokens':usage.get('thoughts_token_count'), 'Total tokens':usage.get('total_token_count')})
+    readable_table(activity, 'No model activity is recorded for this snapshot. Recovered checkpoints do not represent a single continuous run.')
     if 'request_attempts' in result:
-        st.write('Provider attempts (including bounded retries):',result['request_attempts'])
-        st.write('Execution policy:',result['request_policy'])
+        st.write('Provider attempts (including bounded retries)')
+        readable_table([{k.replace('_',' ').capitalize():v for k,v in a.items()} for a in result['request_attempts']])
+        with st.expander('Execution settings'):
+            readable_table([{'Setting':k.replace('_',' ').capitalize(), 'Value':str(v) if v is not None else 'Not set'} for k,v in result['request_policy'].items()])
     export = dict(run_id=selected,snapshot_hash=run['snapshot_hash'],mode=run['snapshot']['mode'],proposals=result['proposals'],review=review,telemetry=result['telemetry'],request_attempts=result.get('request_attempts',[]))
     st.download_button('Download sanitised investigation JSON',json.dumps(export,indent=2),'claimcascade-report.json','application/json')
     st.download_button('Download snapshot claims CSV',dump_claims_csv(claims),'claimcascade-claims.csv','text/csv')
