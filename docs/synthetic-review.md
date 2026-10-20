@@ -71,3 +71,38 @@ cloud review database. No paid call or deployment was needed for this review.
 Next decisions are whether to adopt the three timing holds, confirm either
 duplicate pair, and obtain the missing incident times and amount before approving
 groups. This document records recommendations, not those approvals.
+
+## Local review app
+
+The recovered investigation and suggested pending revision have now been imported
+into a separate local database, `data/recovered-review.db`, using
+`scripts/import_recovered.py`. The three timing holds are applied only in the
+pending review revision; original proposals, explanations and objections remain
+attached to the imported analysis. All three decisions are pending and the
+confirmed-duplicate map is empty. The public database is unchanged.
+
+The local review session is available at http://127.0.0.1:8502. Open **Review** to
+inspect or edit the suggested membership. **Event investigation** retains the
+original proposals and evidence. The recovery notice makes clear that this is
+not a fresh end-to-end run. Paid calls are disabled for this session.
+
+To recreate the import and start the local app:
+
+```powershell
+python -m scripts.import_recovered data/live-tests/20261020T094655Z.json data/live-tests/20261020T095303Z-challenger-diagnostic.json data/live-tests/20261020T101151Z-reporter-diagnostic.json data/live-tests/pending-review-50.json
+$env:DATABASE_URL='sqlite:///data/recovered-review.db'
+$env:CLAIMCASCADE_ALLOW_PAID_CALLS='false'
+python -m streamlit run app.py --server.port=8502 --server.address=127.0.0.1
+```
+
+Import verifies checkpoint sources, original evidence, report references and review
+membership before writing. It atomically creates the analysis and first pending
+revision; repeating an identical import returns the existing run and preserves
+later review edits. The import rejects approved groups and confirmed duplicate
+maps. Its CLI accepts a local SQLite file path, rather than a remote database URL.
+
+All 45 offline tests passed, including imported-history rendering without inference,
+pending membership display, repeat-import preservation and approval refusal. The
+actual local database was also opened with Streamlit AppTest: three pending rows,
+the recovery notice and no app exceptions. The local health endpoint returned
+`ok`. No deployment or paid inference was performed for this step.

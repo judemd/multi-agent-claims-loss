@@ -3,7 +3,7 @@
 ## Latest full-fixture follow-up
 
 **The 50-claim workflow is still not validated end to end.** The public service
-remains unchanged and rules-only. The latest offline suite passes **44 tests**.
+remains unchanged and rules-only. The latest offline suite passes **45 tests**.
 
 The initial follow-up allowed 12 attempts. The subsequently approved four-call
 recovery raised the combined ceiling to 13; a separately approved reporter call
@@ -267,6 +267,16 @@ Original and conditional totals are recorded separately. The artifact is local
 `data/live-tests/pending-review-50.json`; original analysis history is unchanged.
 No inference or deployment changes were made. Adoption of the suggested holds
 and confirmation of duplicates remain human decisions.
+
+## Local interactive review
+
+The recovered result and pending revision were subsequently imported into an
+isolated local SQLite database, not the hosted database. The local app labels
+checkpoint recovery, shows original evidence separately from edited review
+membership, and keeps all decisions pending. Import is atomic and repeatable
+without overwriting later review revisions. All 45 offline tests pass; actual
+local app checks found three pending rows and no exceptions, and HTTP health was
+`ok`. Paid calls remain disabled. See [local review setup](synthetic-review.md#local-review-app).
 
 The remaining sections retain the earlier observations for context.
 

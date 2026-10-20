@@ -253,6 +253,9 @@ it is a reused synthetic example, not a blind accuracy estimate. Groups remain
 pending review and duplicate candidates remain included in reported totals.
 The [source-review draft](docs/synthetic-review.md) records timing holds, duplicate
 candidates and conditional amounts for human review; no decisions are approved.
+The operator-only `scripts/import_recovered.py` imports linked checkpoints and a
+pending draft into a separate local SQLite database. It cannot import approved
+groups or confirmed duplicates. See [local review setup](docs/synthetic-review.md#local-review-app).
 The public container remains pinned to the earlier rules-only release; these new
 live controls have not been deployed there. Model behaviour is not deterministic even at zero
 temperature. Exact excerpts do not guarantee sound causality; the human reviewer

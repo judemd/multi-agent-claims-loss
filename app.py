@@ -114,6 +114,8 @@ if run['status'] != 'complete':
     st.stop()
 claims = [Claim.model_validate(c) for c in run['snapshot']['claims']]
 result = run['result']
+if result.get('origin'):
+    st.info('Recovered investigation assembled from validated checkpoints. This is not a fresh end-to-end run; proposals and suggested edits require review.')
 proposals = result['proposals']['clusters']
 revisions = store.history(selected)
 review = revisions[-1]['payload'] if revisions else {'groups':[dict(cluster_id=c['cluster_id'],members=c['members'],decision='pending',note='') for c in proposals],'duplicates':{},'dismissed_duplicates':[]}

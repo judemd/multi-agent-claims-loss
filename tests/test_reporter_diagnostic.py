@@ -9,6 +9,8 @@ from claimcascade.synthetic import generate
 from scripts.diagnose_challenger import prepare as prepare_challenger
 from scripts.diagnose_reporter import prepare
 from scripts.assemble_recovered import assemble, markdown
+from scripts.import_recovered import import_pending
+from claimcascade.persistence import Store
 
 
 def test_reporter_rejects_mismatched_sources_and_incomplete_explanations(tmp_path):
@@ -51,6 +53,21 @@ def test_reporter_rejects_mismatched_sources_and_incomplete_explanations(tmp_pat
     assert 'Unresolved' in markdown(recovered)
     assert 'not a fresh end-to-end run' in markdown(recovered)
     assert ', '.join(members) in markdown(recovered)
+    review_draft = dict(status='pending_human_review', reviewer_approved=False,
+        source_hashes=recovered['sources'], review_payload=dict(groups=[dict(cluster_id='event-a',
+            members=members, decision='pending', note='Review needed')], duplicates={}, dismissed_duplicates=[]))
+    database = tmp_path/'recovered.db'
+    run_id, created = import_pending(recovered, review_draft, database)
+    assert created
+    store = Store('sqlite:///'+str(database))
+    assert store.history(run_id)[0]['payload']['groups'][0]['decision'] == 'pending'
+    store.save_review(run_id, dict(review_draft['review_payload'], reviewer_note='Later revision'))
+    assert import_pending(recovered, review_draft, database) == (run_id, False)
+    assert len(store.list_runs()) == 1 and len(store.history(run_id)) == 2
+    review_draft['review_payload']['groups'][0]['decision'] = 'approved'
+    with pytest.raises(ValueError, match='cannot approve'):
+        import_pending(recovered, review_draft, database)
+    store.engine.dispose()
     reporter_data['payload_sha256'] = 'wrong'
     reporter.write_text(json.dumps(reporter_data))
     with pytest.raises(ValueError, match='not linked'):
