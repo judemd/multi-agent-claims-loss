@@ -251,6 +251,8 @@ using `python -m scripts.assemble_recovered INVESTIGATION CHALLENGER REPORTER`.
 The recovered development fixture scored pair F1 0.929 versus baseline 0.760;
 it is a reused synthetic example, not a blind accuracy estimate. Groups remain
 pending review and duplicate candidates remain included in reported totals.
+The [source-review draft](docs/synthetic-review.md) records timing holds, duplicate
+candidates and conditional amounts for human review; no decisions are approved.
 The public container remains pinned to the earlier rules-only release; these new
 live controls have not been deployed there. Model behaviour is not deterministic even at zero
 temperature. Exact excerpts do not guarantee sound causality; the human reviewer

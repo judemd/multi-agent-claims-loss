@@ -251,6 +251,23 @@ recovered artifact; fresh-run reliability and broader blind evaluation remain op
 python -m scripts.assemble_recovered data/live-tests/20261020T094655Z.json data/live-tests/20261020T095303Z-challenger-diagnostic.json data/live-tests/20261020T101151Z-reporter-diagnostic.json
 ```
 
+## Source review of the recovered proposals
+
+An assistant-prepared [review draft](synthetic-review.md) recommends holding C002,
+C011 and C021 outside the working groups pending timing clarification, keeping
+C012/C022 unassigned, and retaining two duplicate pairs as unconfirmed candidates.
+C011's notification predates the proposed flood event, an additional discrepancy
+not called out by the challenger. The duplicate pairs' incident times match but
+notification dates differ; the challenger's identical-timestamps wording is
+corrected in the review. C027's missing amount remains explicit.
+
+The pending revision has 27 grouped and 23 unassigned notifications. It passed
+application review validation and has no approvals or confirmed duplicates.
+Original and conditional totals are recorded separately. The artifact is local
+`data/live-tests/pending-review-50.json`; original analysis history is unchanged.
+No inference or deployment changes were made. Adoption of the suggested holds
+and confirmation of duplicates remain human decisions.
+
 The remaining sections retain the earlier observations for context.
 
 ## Changes
