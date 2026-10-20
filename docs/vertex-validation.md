@@ -3,7 +3,7 @@
 ## Latest full-fixture follow-up
 
 **The 50-claim workflow is still not validated end to end.** The public service
-remains unchanged and rules-only. The latest offline suite passes **31 tests**.
+remains unchanged and rules-only. The latest offline suite passes **32 tests**.
 
 The initial follow-up allowed 12 attempts. The subsequently approved four-call
 recovery raised the combined ceiling to 13; all 13 attempts have now started:
@@ -101,6 +101,29 @@ Offline diagnostic tests cover source reconstruction, objection membership denia
 SDK/ADK event ordering and timeout evidence, with no paid calls. Operators can use
 `python -m scripts.diagnose_challenger SOURCE --inspect-only` to validate and measure
 the input without inference; omitting that flag performs one gated paid request.
+
+## Reporter prepared offline
+
+`scripts/diagnose_reporter.py` reconstructs the reporter's production input from
+the validated investigation and isolated challenger checkpoints. Before inference
+it revalidates extraction sources, proposal membership, objections, dataset/model
+identity, generation settings, and the challenger's exact source and input hashes.
+Reported claim totals are recomputed in Python; hidden duplicate labels are not
+used to alter operational totals. The report must explain each proposal exactly
+once, and objections remain unresolved.
+
+Offline inspection passed for three proposals and three objections. The input is
+4,416 bytes of proposals, 900 bytes of challenge and 404 bytes of totals, plus JSON
+keys/separators. The script's `--inspect-only` mode performs no model calls. Tests
+reject mismatched checkpoint links, missing/duplicate/unknown report explanations
+and verify that amounts and objections are preserved. No additional paid call has
+been made. A one-call, no-retry, 90-second reporter diagnostic is ready but requires
+an extension of the exhausted call allowance. It would validate the final isolated
+stage, not demonstrate that a fresh full workflow reliably finishes.
+
+```powershell
+python -m scripts.diagnose_reporter data/live-tests/20261020T094655Z.json data/live-tests/20261020T095303Z-challenger-diagnostic.json --inspect-only
+```
 
 The remaining sections retain the earlier observations for context.
 

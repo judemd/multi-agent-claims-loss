@@ -1,6 +1,6 @@
 # Local validation — 19 October 2026
 
-Latest reliability follow-up: **31 offline tests passed** and all four agents
+Latest reliability follow-up: **32 offline tests passed** and all four agents
 completed on a 10-claim live synthetic sample. A recovered 50-claim run validated
 all extraction batches and the investigator, then timed out in the challenger.
 An isolated challenger diagnostic subsequently passed in 8.92 seconds; the reporter
