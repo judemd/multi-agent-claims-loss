@@ -1,7 +1,8 @@
 # Local validation — 19 October 2026
 
-Latest reliability follow-up: **29 offline tests passed** and all four agents
-completed on a 10-claim live synthetic sample. A full 50-claim paced run timed out;
+Latest reliability follow-up: **30 offline tests passed** and all four agents
+completed on a 10-claim live synthetic sample. A recovered 50-claim run validated
+all extraction batches and the investigator, then timed out in the challenger;
 see [the detailed Vertex validation](vertex-validation.md) for limits and exact
 results. Public paid calls remain disabled.
 

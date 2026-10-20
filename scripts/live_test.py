@@ -19,6 +19,7 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('--min-interval',type=float,default=30)
     parser.add_argument('--max-attempts',type=int,default=12)
+    parser.add_argument('--retries-per-stage',type=int,choices=(0,1),default=1)
     parser.add_argument('--seed',type=int,default=42)
     parser.add_argument('--held-out',action='store_true')
     parser.add_argument('--claim-count',type=int,default=50,choices=range(1,51))
@@ -26,7 +27,8 @@ def main():
     args = parser.parse_args()
     # Request events below retain structured failures without repeated ADK stack traces.
     logging.getLogger('google_adk').setLevel(logging.CRITICAL)
-    policy = RequestPolicy(min_interval_seconds=args.min_interval,max_attempts=args.max_attempts)
+    policy = RequestPolicy(min_interval_seconds=args.min_interval,max_attempts=args.max_attempts,
+                           retries_per_stage=args.retries_per_stage)
     claims, bulletins, truth = generate(args.seed,args.held_out)
     claims = claims[:args.claim_count]
     selected = {c.claim_id for c in claims}

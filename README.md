@@ -122,7 +122,7 @@ content event without logging response text. This helps distinguish missing outp
 from later stream/validation delays; it does not guarantee provider latency.
 
 The operator test accepts `--min-interval`, `--max-attempts` (hard maximum 12),
-`--seed`, `--held-out` and `--claim-count` (1–50),
+`--retries-per-stage` (0 or 1), `--seed`, `--held-out` and `--claim-count` (1–50),
 and saves attempt events, usage and schema-validated stage outputs locally as it
 runs. Schema validation alone does not establish evidence or membership validity;
 the pipeline still checks those before subsequent stages. Partial output files
@@ -232,10 +232,10 @@ claims, personal information or confidential business data into the public demo.
 The container build, PostgreSQL connectivity, Cloud Run deployment and anonymous
 browser workflow have passed external integration checks. A 10-claim live Vertex
 run completed all four agents and passed evidence/membership checks after adding
-pacing and lower thinking. Full 50-claim validation still fails on live extraction
-timeouts, including a recovery attempt using revalidated extraction checkpoints.
-An isolated SDK stream completed one stalled batch, but the ADK live run remains
-incomplete. See [the live validation record](docs/vertex-validation.md).
+pacing and lower thinking. A recovered 50-claim run validated all extraction
+batches and the investigator, then timed out in the challenger after 90 seconds.
+The reporter was not called; the full workflow remains incomplete.
+See [the live validation record](docs/vertex-validation.md).
 The public container remains pinned to the earlier rules-only release; these new
 live controls have not been deployed there. Model behaviour is not deterministic even at zero
 temperature. Exact excerpts do not guarantee sound causality; the human reviewer

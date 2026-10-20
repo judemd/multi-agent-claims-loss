@@ -5,7 +5,8 @@
 **The 50-claim workflow is still not validated end to end.** The public service
 remains unchanged and rules-only. The latest offline suite passes **30 tests**.
 
-The approved follow-up stayed below its combined 12-generation-attempt ceiling:
+The initial follow-up allowed 12 attempts. The subsequently approved four-call
+recovery raised the combined ceiling to 13; 12 attempts have now started:
 
 | Request group | Attempts started | Outcome |
 |---|---:|---|
@@ -16,11 +17,13 @@ The approved follow-up stayed below its combined 12-generation-attempt ceiling:
 | Corrected JSON streaming diagnostic | 1 | Stalled third batch completed in 5.38 seconds; first chunk at 3.88 seconds; ten facts validated |
 | ADK SSE recovery using the three validated extraction batches | 1 | Next extraction batch timed out at 90.02 seconds |
 | Instrumented ADK diagnostic of that next batch | 1 | Completed in 6.30 seconds; first SDK chunk and ADK content both at 4.73 seconds |
-| **Total** | **9** | **No full-run proposals, totals or metrics produced** |
+| Recovery from four validated extraction batches, retries disabled | 3 | Last extractor and investigator validated; challenger timed out at 90.03 seconds; reporter not called |
+| **Total** | **12** | **No completed full-workflow result or accuracy metrics** |
 
-Three attempts remain unused. Even retaining the diagnostic extraction, at least
-four successful calls are needed to finish (last extractor plus three later agents).
-No further calls were made under this allowance.
+One of the four newly authorized recovery calls remains unused. The run stopped
+on its first failure as promised; no further calls were made. Recovery currently
+supports extraction outputs only, so completing another run would require more
+than just rerunning the challenger. No public model access was enabled.
 Timeout outcomes and their final billable token usage are unknown.
 
 Corrections and safeguards implemented:
@@ -51,7 +54,8 @@ Local evidence (ignored by Git): `20261020T090931Z.json`,
 `20261020T091248Z.json`, `20261020T091537Z.json`,
 `20261020T092158Z-stream-diagnostic.json`, and `20261020T092442Z.json`
 under `data/live-tests`. The instrumented diagnostic is
-`20261020T094238Z-adk-diagnostic.json`. The rejected MIME diagnostic has console evidence only.
+`20261020T094238Z-adk-diagnostic.json`. The latest recovery is
+`20261020T094655Z.json`. The rejected MIME diagnostic has console evidence only.
 The recovery source-file hashes remain in its progress record.
 
 The earlier completed 10-claim result was independently rechecked offline:
@@ -62,6 +66,17 @@ ADK content at that same timestamp, and finished both layers at 6.297 seconds.
 Its exact narrative evidence passed validation. This request shows no measurable
 ADK aggregation delay, but it did not reproduce the intermittent timeout and cannot
 establish its cause. A successful isolated retry does not validate a full run.
+
+The latest recovery reused four source-validated extraction batches. The fifth
+completed in 11.73 seconds (first ADK content at 9.20 seconds), and the investigator
+completed in 9.91 seconds (first content at 3.67 seconds). Python validated source
+evidence and membership before starting the challenger. The challenger emitted no
+ADK content before its 90.03-second timeout. No provider status code was returned,
+and final token usage for that uncertain request is unknown. The reporter was not
+called. Investigator output is retained locally as an incomplete checkpoint, not
+an approved or completed investigation. No accuracy comparison is reported from
+this partial workflow. Next work should diagnose the challenger request in isolation
+or improve bounded request size before funding another full workflow attempt.
 
 The remaining sections retain the earlier observations for context.
 
