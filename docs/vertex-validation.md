@@ -3,7 +3,7 @@
 ## Latest full-fixture follow-up
 
 **The 50-claim workflow is still not validated end to end.** The public service
-remains unchanged and rules-only. The latest offline suite passes **32 tests**.
+remains unchanged and rules-only. The latest offline suite passes **44 tests**.
 
 The initial follow-up allowed 12 attempts. The subsequently approved four-call
 recovery raised the combined ceiling to 13; a separately approved reporter call
@@ -143,6 +143,30 @@ ground report statements in structured member references and validate those
 references, with deterministic member/amount rendering. This can be developed
 offline without extending the exhausted paid-call allowance. No deployment or
 public paid access was changed.
+
+## Offline report grounding correction
+
+Live pipeline version 5 replaces free-text observations with claim IDs and exact
+narrative quotations. Hypotheses and missing-information statements now have
+explicit, nonempty claim-ID lists, validated as unique members of their cluster.
+Claim identifiers are forbidden in those prose fields; this prevents the observed
+ID-range shorthand from bypassing explicit membership references. The validator
+recognizes supplied IDs and unknown IDs in the synthetic C-number format; it is
+not a general semantic truth checker for arbitrary prose or spelled-out ranges.
+
+Production reporting and the reporter diagnostic use the same instruction and
+validator. The UI renders structured references separately from hypothesis text;
+membership and reported amounts remain rendered from Python data. Historical
+reports that fail the current checks show a warning and their prose is withheld
+from the investigation display. Stored history is not rewritten.
+
+Tests cover the actual offline ADK workflow with the revised schema, fabricated
+and wrong-member observations, unknown/nonmember/duplicate references, ASCII and
+Unicode ID ranges in prose, legacy schema rejection, and both current and legacy
+UI paths. All 44 offline tests passed. No additional inference or deployment was
+performed. The revised schema has not been tested live; hypotheses can still be
+wrong despite valid references and require human review. No claim of reliable
+full-workflow completion is justified by these offline checks.
 
 ```powershell
 python -m scripts.diagnose_reporter data/live-tests/20261020T094655Z.json data/live-tests/20261020T095303Z-challenger-diagnostic.json --inspect-only

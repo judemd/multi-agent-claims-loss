@@ -239,6 +239,11 @@ validated objections, without reproducing the timeout. The isolated reporter
 returned in 21.53 seconds and passed schema checks, but manual review found
 inaccurate membership ranges in its prose. Its output is not approved; the full
 workflow remains unvalidated.
+The reporter now uses exact source quotations and explicit member references,
+validated before display. ID ranges in hypothesis prose are rejected, and older
+reports that fail the new checks show a warning. This correction passes offline
+tests but has not been validated with a new live call. References establish source
+and membership fidelity; they do not establish semantic truth or common cause.
 See [the live validation record](docs/vertex-validation.md).
 The public container remains pinned to the earlier rules-only release; these new
 live controls have not been deployed there. Model behaviour is not deterministic even at zero

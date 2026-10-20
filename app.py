@@ -9,7 +9,8 @@ from claimcascade.agents import analyse_live
 from claimcascade.core import baseline, candidates, dump_claims_csv, load_csv, snapshot, suspected_duplicates, total
 from claimcascade.evaluation import evaluate, financial_reference
 from claimcascade.persistence import Store
-from claimcascade.schemas import Bulletin, Claim, Settings
+from claimcascade.schemas import Bulletin, Claim, Settings, Proposals
+from claimcascade.reporting import validate_report
 from claimcascade.services import offline_analysis, review_revision
 from claimcascade.synthetic import generate
 
@@ -119,6 +120,12 @@ review = revisions[-1]['payload'] if revisions else {'groups':[dict(cluster_id=c
 lookup = {c.claim_id:c for c in claims}
 
 with investigate_tab:
+    checked_report = None
+    if result['report']['explanations']:
+        try:
+            checked_report = validate_report(result['report'], Proposals.model_validate(result['proposals']), claims)
+        except ValueError:
+            st.warning('This historical report does not pass current source-reference checks. Use the original evidence and structured membership for review.')
     st.caption('Results belong to the selected historical snapshot. Excerpts support investigation; hypotheses remain unproven.')
     colours = ['#2563eb','#d97706','#059669','#9333ea','#db2777','#0891b2']
     membership = {m:i for i,c in enumerate(proposals) for m in c['members']}
@@ -147,7 +154,17 @@ with investigate_tab:
             for e in cluster['evidence']:
                 st.write(f"{e['claim_id']}: {e['excerpt']}")
             st.write('Challenger objections:',[o for o in result['challenge']['objections'] if o['cluster_id']==cluster['cluster_id']])
-            st.write('Original agent explanation:',[e for e in result['report']['explanations'] if e['cluster_id']==cluster['cluster_id']])
+            if checked_report:
+                explanation = next(e for e in checked_report.explanations if e.cluster_id == cluster['cluster_id'])
+                st.write('Source observations:')
+                for fact in explanation.observed_facts:
+                    st.write(f'{fact.claim_id}: {fact.excerpt}')
+                for label, statements in [('Hypotheses (unproven)', explanation.hypotheses),
+                                          ('Missing information', explanation.missing_information)]:
+                    st.write(label)
+                    for statement in statements:
+                        st.write('Referenced claims:', statement.claim_ids)
+                        st.write(statement.text)
 
 with review_tab:
     st.caption('Edit rows to add/remove claims or split a group into new rows. Claim IDs are comma-separated. Review the evidence and objections in Event investigation before approval. Editing a saved revision resets decisions to pending.')

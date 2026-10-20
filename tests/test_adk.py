@@ -49,7 +49,7 @@ def test_actual_adk_workflow_offline(monkeypatch,transient,reuse):
     edges = candidates(claims,Settings())
     result = offline_analysis(claims,edges)
     ScriptedModel.outputs = deque([{'facts':[]} for _ in range(5-int(reuse))] + [result['proposals'],{'objections':[]},
-        {'explanations':[dict(cluster_id=c['cluster_id'],observed_facts=[],hypotheses=['Test double'],missing_information=[]) for c in result['proposals']['clusters']]}])
+        {'explanations':[dict(cluster_id=c['cluster_id'],observed_facts=[],hypotheses=[dict(text='Test double',claim_ids=[c['members'][0]])],missing_information=[]) for c in result['proposals']['clusters']]}])
     ScriptedModel.requests = []
     ScriptedModel.inject_429 = transient
     original = google.adk.agents.LlmAgent

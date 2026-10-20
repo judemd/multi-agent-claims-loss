@@ -1,13 +1,14 @@
 # Local validation — 19 October 2026
 
-Latest reliability follow-up: **32 offline tests passed** and all four agents
+Latest reliability follow-up: **44 offline tests passed** and all four agents
 completed on a 10-claim live synthetic sample. A recovered 50-claim run validated
 all extraction batches and the investigator, then timed out in the challenger.
 An isolated challenger diagnostic subsequently passed in 8.92 seconds. The isolated
 reporter returned in 21.53 seconds and passed schema checks, but failed manual
 factual review because its prose includes unassigned claims in membership ranges;
 see [the detailed Vertex validation](vertex-validation.md) for limits and exact
-results. Public paid calls remain disabled.
+results. An offline correction now validates explicit member references and source
+quotations; the revised reporter has not been tested live. Public paid calls remain disabled.
 
 ## Deployment verification — 20 October 2026
 

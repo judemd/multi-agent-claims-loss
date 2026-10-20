@@ -7,12 +7,13 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 from claimcascade.core import total
-from claimcascade.schemas import Challenge, Report
+from claimcascade.schemas import Challenge, Report, Proposals
+from claimcascade.reporting import REPORT_INSTRUCTION, validate_report
 from claimcascade.synthetic import generate
 from scripts.diagnose_adk_batch import diagnose
 from scripts.diagnose_challenger import prepare as prepare_challenger
 
-INSTRUCTION = 'Explain each proposal separating observed facts, hypotheses and missing information. Objections remain unresolved for the reviewer. Do not calculate or invent amounts.'
+INSTRUCTION = REPORT_INSTRUCTION
 
 
 def prepare(source, challenger_source):
@@ -37,9 +38,7 @@ def prepare(source, challenger_source):
     payload = dict(proposals=proposals, challenge=challenge.model_dump(), totals=totals)
 
     def validate(output):
-        ids = {c['cluster_id'] for c in proposals['clusters']}
-        if {e.cluster_id for e in output.explanations} != ids or len(output.explanations) != len(ids):
-            raise ValueError('Reporter must explain exactly the proposed clusters')
+        validate_report(output, Proposals.model_validate(proposals), claims)
     return ('reporter', INSTRUCTION, Report, payload, validate)
 
 

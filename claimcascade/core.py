@@ -39,7 +39,7 @@ def snapshot(claims, bulletins, settings, model, mode):
                    settings=settings.model_dump(), model=model, mode=mode, pipeline_version='1')
     if mode.startswith('Live'):
         from .requests import RequestPolicy
-        content.update(pipeline_version='4',request_policy=RequestPolicy().model_dump())
+        content.update(pipeline_version='5',request_policy=RequestPolicy().model_dump())
     digest = hashlib.sha256(json.dumps(content, sort_keys=True).encode()).hexdigest()
     return digest, content
 

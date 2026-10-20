@@ -101,11 +101,16 @@ class Challenge(StrictModel):
     objections: list[Objection]
 
 
+class ReferencedStatement(StrictModel):
+    text: str = Field(min_length=1)
+    claim_ids: list[str] = Field(min_length=1)
+
+
 class Explanation(StrictModel):
     cluster_id: str
-    observed_facts: list[str]
-    hypotheses: list[str]
-    missing_information: list[str]
+    observed_facts: list[Evidence]
+    hypotheses: list[ReferencedStatement]
+    missing_information: list[ReferencedStatement]
 
 
 class Report(StrictModel):
