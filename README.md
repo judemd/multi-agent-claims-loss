@@ -1,5 +1,10 @@
 # ClaimCascade
 
+**Public demo:** https://claimcascade-qbfmgrh25a-nw.a.run.app
+
+The hosted demo uses synthetic data and rules-only analysis. Uploads and paid model
+calls are disabled; demonstration history and reviews are shared publicly.
+
 A small commercial-property insurance investigation POC. It helps a reviewer
 connect notifications that may share an initiating incident, inspect evidence and
 contradictions, and record membership and duplicate decisions. Shared-event
@@ -176,7 +181,9 @@ Target repository: https://github.com/judemd/multi-agent-claims-loss.
 GitHub Actions runs offline tests, with no cloud secrets or paid calls.
 See [the proposed deployment](docs/deployment.md) for the public Cloud Run service,
 Artifact Registry, Cloud SQL and runtime identity. Cloud creation/deployment are
-separately approved steps. No public URL exists until deployment is approved.
+separately approved steps. The initial deployment was approved and verified on
+20 October 2026; its exact image and runtime settings are recorded in
+[`deploy/cloudrun.yaml`](deploy/cloudrun.yaml).
 
 ```powershell
 docker build -t claimcascade .
@@ -190,8 +197,10 @@ claims, personal information or confidential business data into the public demo.
 
 ## Limitations and next improvements
 
-Live Vertex inference, PostgreSQL connectivity and cloud deployment require
-external integration checks. Model behaviour is not deterministic even at zero
+The container build, PostgreSQL connectivity, Cloud Run deployment and anonymous
+browser workflow have passed external integration checks. The live Vertex test
+completed its first extraction batch, then stopped on `429 RESOURCE_EXHAUSTED`;
+full live clustering and agent evaluation remain unverified. Model behaviour is not deterministic even at zero
 temperature. Exact excerpts do not guarantee sound causality; the human reviewer
 remains responsible. Missing coordinates reduce candidate recall, duplicate
 detection initially flags only identical narratives, and the benchmark is small.

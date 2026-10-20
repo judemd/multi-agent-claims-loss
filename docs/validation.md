@@ -1,5 +1,35 @@
 # Local validation — 19 October 2026
 
+## Deployment verification — 20 October 2026
+
+- Latest offline suite: **13 passed** (`--basetemp .test-tmp7`), including public-mode
+  refusal of paid calls even when the paid-call environment flag is true.
+- Cloud Build produced the Linux Docker image successfully. The manifest pins
+  `sha256:f2a072148bb0325bfe0968079d02443956e5e88b37b2177da4b8bb71029b7ae9`.
+- Cloud SQL PostgreSQL 16: created, written, reopened through a fresh connection;
+  saved run and review found. Application role's administrative privileges checked
+  and absent. Secret URL created without printing or writing credentials locally.
+- Private Cloud Run Chrome test: Streamlit WebSocket UI loaded, existing snapshot
+  reused, review saved, charts rendered, uploader buttons disabled, history reopened.
+- New Cloud Run revision `claimcascade-00002-5q5`: a new browser session reopened
+  the same persisted run and review after container replacement.
+- Anonymous Chrome test passed after publication, including generating synthetic
+  data, reusing its snapshot, saving a review and reopening history after reload.
+- Anonymous `/_stcore/health`: HTTP 200, body `ok`.
+- No model calls were triggered by the hosted browser checks.
+
+Live Vertex test: first extraction batch completed; the second returned
+`429 RESOURCE_EXHAUSTED`. Two logical stages started, one completed. Full live
+clustering and accuracy evaluation were not reached; the full run was not replayed.
+There were no application retries; provider SDK transport retries may have occurred.
+The public service keeps paid calls disabled.
+
+Public URL: https://claimcascade-qbfmgrh25a-nw.a.run.app
+
+The remaining section records the earlier local-only validation state.
+
+## Earlier local checks
+
 Environment: Windows PowerShell, project-local CPython 3.11.16, dependencies
 installed into `.venv`. Exact resolved dependency versions are in `requirements.lock`.
 

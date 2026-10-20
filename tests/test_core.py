@@ -141,3 +141,11 @@ def test_edited_approval_invalidated(dataset):
     assert review_revision(edited,previous,claims)['groups'][0]['decision']=='pending'
     assert previous['groups'][0]['decision']=='approved'
     assert review_revision(previous,previous,claims)['groups'][0]['decision']=='approved'
+
+
+def test_public_mode_refuses_paid_calls(monkeypatch,dataset):
+    from claimcascade.agents import analyse_live
+    monkeypatch.setenv('CLAIMCASCADE_ALLOW_PAID_CALLS','true')
+    monkeypatch.setenv('CLAIMCASCADE_PUBLIC_DEMO','true')
+    with pytest.raises(RuntimeError,match='Public demo'):
+        analyse_live(dataset[0],dataset[1],[],'unused')

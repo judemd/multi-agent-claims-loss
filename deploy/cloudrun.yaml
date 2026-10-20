@@ -1,0 +1,44 @@
+apiVersion: serving.knative.dev/v1
+kind: Service
+metadata:
+  name: claimcascade
+spec:
+  template:
+    metadata:
+      annotations:
+        autoscaling.knative.dev/minScale: '0'
+        autoscaling.knative.dev/maxScale: '1'
+        run.googleapis.com/cloudsql-instances: project-d4ec743e-de8a-4ed5-b45:europe-west2:claimcascade-demo
+        run.googleapis.com/sessionAffinity: 'true'
+    spec:
+      serviceAccountName: claimcascade-runtime@project-d4ec743e-de8a-4ed5-b45.iam.gserviceaccount.com
+      containerConcurrency: 10
+      timeoutSeconds: 3600
+      containers:
+        - image: europe-west2-docker.pkg.dev/project-d4ec743e-de8a-4ed5-b45/claimcascade/app@sha256:f2a072148bb0325bfe0968079d02443956e5e88b37b2177da4b8bb71029b7ae9
+          ports:
+            - containerPort: 8080
+          resources:
+            limits:
+              cpu: '1'
+              memory: 1Gi
+          env:
+            - name: CLAIMCASCADE_RELEASE
+              value: 4aa5c8b
+            - name: GOOGLE_CLOUD_PROJECT
+              value: project-d4ec743e-de8a-4ed5-b45
+            - name: GOOGLE_CLOUD_LOCATION
+              value: global
+            - name: GOOGLE_GENAI_USE_ENTERPRISE
+              value: 'true'
+            - name: GEMINI_MODEL
+              value: gemini-3.5-flash
+            - name: CLAIMCASCADE_PUBLIC_DEMO
+              value: 'true'
+            - name: CLAIMCASCADE_ALLOW_PAID_CALLS
+              value: 'false'
+            - name: DATABASE_URL
+              valueFrom:
+                secretKeyRef:
+                  name: claimcascade-database-url
+                  key: '1'
