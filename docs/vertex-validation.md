@@ -3,7 +3,7 @@
 ## Latest full-fixture follow-up
 
 **The 50-claim workflow is still not validated end to end.** The public service
-remains unchanged and rules-only. The latest offline suite passes **29 tests**.
+remains unchanged and rules-only. The latest offline suite passes **30 tests**.
 
 The approved follow-up stayed below its combined 12-generation-attempt ceiling:
 
@@ -15,10 +15,12 @@ The approved follow-up stayed below its combined 12-generation-attempt ceiling:
 | Direct SDK streaming diagnostic, missing MIME | 1 | Rejected with HTTP 400 before useful generation; counted toward the ceiling |
 | Corrected JSON streaming diagnostic | 1 | Stalled third batch completed in 5.38 seconds; first chunk at 3.88 seconds; ten facts validated |
 | ADK SSE recovery using the three validated extraction batches | 1 | Next extraction batch timed out at 90.02 seconds |
-| **Total** | **8** | **No full-run proposals, totals or metrics produced** |
+| Instrumented ADK diagnostic of that next batch | 1 | Completed in 6.30 seconds; first SDK chunk and ADK content both at 4.73 seconds |
+| **Total** | **9** | **No full-run proposals, totals or metrics produced** |
 
-Four attempts remain unused. At least five successful calls would be needed from
-the current recovery point, so no further calls were made under this allowance.
+Three attempts remain unused. Even retaining the diagnostic extraction, at least
+four successful calls are needed to finish (last extractor plus three later agents).
+No further calls were made under this allowance.
 Timeout outcomes and their final billable token usage are unknown.
 
 Corrections and safeguards implemented:
@@ -35,8 +37,11 @@ Corrections and safeguards implemented:
 - Added explicit operator-only extraction recovery with source/batch validation,
   dataset/generation-policy checks and source-file/output hashes. No automatic
   replay of uncertain requests or reuse of prior proposals/approvals was added.
-- Added first-ADK-content timing instrumentation for a future diagnostic; it was
-  added after the last failed request and has not been observed live yet.
+- Added a single-batch diagnostic that records SDK entry, first chunk, stream end
+  and ADK content/final events without printing response text or credentials.
+  It uses the production extraction instruction, schema and generation settings,
+  with one SDK call, no retry and a 90-second timeout. Offline checks cover both
+  successful event ordering and preservation of timing evidence after timeout.
 - Verified ADK's real Gemini stream aggregator offline with a stubbed SDK transport.
   All eight stages finish, and temperature, thinking level, JSON output and disabled
   continuation reach the assembled request correctly. This does not establish the
@@ -45,13 +50,18 @@ Corrections and safeguards implemented:
 Local evidence (ignored by Git): `20261020T090931Z.json`,
 `20261020T091248Z.json`, `20261020T091537Z.json`,
 `20261020T092158Z-stream-diagnostic.json`, and `20261020T092442Z.json`
-under `data/live-tests`. The rejected MIME diagnostic has console evidence only.
+under `data/live-tests`. The instrumented diagnostic is
+`20261020T094238Z-adk-diagnostic.json`. The rejected MIME diagnostic has console evidence only.
 The recovery source-file hashes remain in its progress record.
 
 The earlier completed 10-claim result was independently rechecked offline:
 source evidence, membership and integer-pence financial aggregation checks passed.
-There is no new 50-claim accuracy result. A future test should isolate a stalled
-ADK batch with the new timing instrumentation before funding another full run.
+There is no new 50-claim accuracy result. The instrumented batch-three diagnostic
+reached the SDK at 0.906 seconds, received its first chunk at 4.734 seconds, emitted
+ADK content at that same timestamp, and finished both layers at 6.297 seconds.
+Its exact narrative evidence passed validation. This request shows no measurable
+ADK aggregation delay, but it did not reproduce the intermittent timeout and cannot
+establish its cause. A successful isolated retry does not validate a full run.
 
 The remaining sections retain the earlier observations for context.
 
