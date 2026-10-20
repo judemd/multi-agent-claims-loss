@@ -96,10 +96,25 @@ Paid calls are disabled by default. After explicit approval, set
 `CLAIMCASCADE_ALLOW_PAID_CALLS=true`, then choose Live Vertex AI agents. Normal live
 mode never substitutes mocked responses. For 50 claims it makes five extractor
 calls and one each for investigation, challenge and reporting: eight logical calls.
-Each invocation allows one model call, 8,192 output tokens and 90 seconds; the full
-run has a ten-minute timeout. There are no application retries; provider transport
-retries may occur. Invalid outputs fail visibly. Paid access and model availability
-must be verified in a separately approved live test.
+Each attempt allows one model call, 8,192 output tokens and 90 seconds; the full
+run has a ten-minute timeout. Request starts are spaced by at least 30 seconds.
+SDK transport retries and automatic generation continuations are explicitly disabled. The application permits one retry
+per stage only for structured provider errors 429 or 503, using capped backoff and
+jitter, and respects numeric Retry-After headers. The whole run stops after at
+most 12 provider attempts. Authentication, schema/evidence errors, cancellation
+and timeouts with uncertain completion are not retried. Invalid outputs fail
+visibly. Live snapshots include this execution policy and pipeline version.
+The default Gemini 3.5 configuration uses `LOW` thinking to reduce latency; it
+does not request internal thought text. This is a reasoning level, not a guaranteed
+token cap or response-time guarantee. For models without thinking-level support,
+configure `RequestPolicy(thinking_level=None)` instead.
+
+The operator test accepts `--min-interval`, `--max-attempts` (hard maximum 12),
+`--seed`, `--held-out` and `--claim-count` (1–50),
+and saves attempt events, usage and schema-validated stage outputs locally as it
+runs. Schema validation alone does not establish evidence or membership validity;
+the pipeline still checks those before subsequent stages. Partial output files
+are diagnostic evidence, never silently resumed or fed into another paid run.
 
 ## Matching and financial rules
 
@@ -198,9 +213,12 @@ claims, personal information or confidential business data into the public demo.
 ## Limitations and next improvements
 
 The container build, PostgreSQL connectivity, Cloud Run deployment and anonymous
-browser workflow have passed external integration checks. The live Vertex test
-completed its first extraction batch, then stopped on `429 RESOURCE_EXHAUSTED`;
-full live clustering and agent evaluation remain unverified. Model behaviour is not deterministic even at zero
+browser workflow have passed external integration checks. A 10-claim live Vertex
+run completed all four agents and passed evidence/membership checks after adding
+pacing and lower thinking. A paced 50-claim run timed out in its third extraction
+batch, so full-size reliability remains unverified. See [the live validation record](docs/vertex-validation.md).
+The public container remains pinned to the earlier rules-only release; these new
+live controls have not been deployed there. Model behaviour is not deterministic even at zero
 temperature. Exact excerpts do not guarantee sound causality; the human reviewer
 remains responsible. Missing coordinates reduce candidate recall, duplicate
 detection initially flags only identical narratives, and the benchmark is small.

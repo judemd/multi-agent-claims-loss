@@ -106,9 +106,11 @@ Operator scripts:
   checks and reopened history. Requires Playwright and installed Chrome. Use
   `--private` before anonymous publication and `--verify-only` to avoid edits.
 - `scripts/live_test.py`: explicitly gated operator-only Vertex test; writes local
-  evidence under ignored `data/live-tests`. No automatic application retry.
+  evidence under ignored `data/live-tests`. Repository code now uses explicit
+  pacing and bounded transient retries as described in the README. The hosted
+  public image remains pinned to the earlier rules-only release.
 
-## Live inference limitation
+## Initial live inference limitation
 
 The approved live test reached Vertex successfully and completed `extractor_0`.
 `extractor_1` returned `429 RESOURCE_EXHAUSTED`, stopping the test before any event
@@ -118,6 +120,18 @@ occurred. Do not interpret this as a successful end-to-end live agent run.
 
 Public paid calls remain disabled. A later live test needs available model capacity
 and a separately agreed retry/call budget; no quota or billing limits were changed.
+
+The subsequent user-approved investigation added a 30-second minimum request-start
+interval, one transient retry per stage, a hard 12-attempt run budget, and explicitly
+disabled SDK retries. Offline tests exercise a real ADK graph with a synthetic 429,
+Retry-After, exhausted budgets, authentication errors and cancellation. Google
+recommends the global endpoint, traffic smoothing and truncated backoff for PayGo
+capacity errors: [429 guidance](https://docs.cloud.google.com/vertex-ai/generative-ai/docs/error-code-429).
+
+That investigation subsequently completed a 10-claim live run through all four agents.
+The 50-claim test timed out, so full-size reliability remains outstanding.
+See [the current validation record](vertex-validation.md). The public image is
+unchanged and paid calls remain disabled.
 
 ## References
 

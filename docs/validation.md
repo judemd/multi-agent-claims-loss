@@ -1,5 +1,10 @@
 # Local validation — 19 October 2026
 
+Latest reliability follow-up: **23 offline tests passed** and all four agents
+completed on a 10-claim live synthetic sample. A full 50-claim paced run timed out;
+see [the detailed Vertex validation](vertex-validation.md) for limits and exact
+results. Public paid calls remain disabled.
+
 ## Deployment verification — 20 October 2026
 
 - Latest offline suite: **13 passed** (`--basetemp .test-tmp7`), including public-mode

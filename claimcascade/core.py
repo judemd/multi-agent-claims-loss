@@ -37,6 +37,9 @@ def snapshot(claims, bulletins, settings, model, mode):
     content = dict(claims=sorted([c.model_dump(mode='json') for c in claims], key=lambda c: c['claim_id']),
                    bulletins=sorted([b.model_dump(mode='json') for b in bulletins], key=lambda b: b['bulletin_id']),
                    settings=settings.model_dump(), model=model, mode=mode, pipeline_version='1')
+    if mode.startswith('Live'):
+        from .requests import RequestPolicy
+        content.update(pipeline_version='2',request_policy=RequestPolicy().model_dump())
     digest = hashlib.sha256(json.dumps(content, sort_keys=True).encode()).hexdigest()
     return digest, content
 

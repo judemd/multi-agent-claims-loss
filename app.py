@@ -194,6 +194,9 @@ with evaluation_tab:
     elif not truth:
         st.info('No matching ground truth is attached to this uploaded dataset. Accuracy metrics are unavailable.')
     st.write('Model telemetry:',result['telemetry'])
-    export = dict(run_id=selected,snapshot_hash=run['snapshot_hash'],mode=run['snapshot']['mode'],proposals=result['proposals'],review=review,telemetry=result['telemetry'])
+    if 'request_attempts' in result:
+        st.write('Provider attempts (including bounded retries):',result['request_attempts'])
+        st.write('Execution policy:',result['request_policy'])
+    export = dict(run_id=selected,snapshot_hash=run['snapshot_hash'],mode=run['snapshot']['mode'],proposals=result['proposals'],review=review,telemetry=result['telemetry'],request_attempts=result.get('request_attempts',[]))
     st.download_button('Download sanitised investigation JSON',json.dumps(export,indent=2),'claimcascade-report.json','application/json')
     st.download_button('Download snapshot claims CSV',dump_claims_csv(claims),'claimcascade-claims.csv','text/csv')
