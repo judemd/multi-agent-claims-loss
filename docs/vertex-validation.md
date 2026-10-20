@@ -7,7 +7,8 @@ remains unchanged and rules-only. The latest offline suite passes **44 tests**.
 
 The initial follow-up allowed 12 attempts. The subsequently approved four-call
 recovery raised the combined ceiling to 13; a separately approved reporter call
-raised it to 14. All 14 attempts have now started:
+raised it to 14. One separately approved revised-reporter call raised it to 15.
+All 15 attempts have now started:
 
 | Request group | Attempts started | Outcome |
 |---|---:|---|
@@ -21,7 +22,8 @@ raised it to 14. All 14 attempts have now started:
 | Recovery from four validated extraction batches, retries disabled | 3 | Last extractor and investigator validated; challenger timed out at 90.03 seconds; reporter not called |
 | Isolated, instrumented challenger using the unchanged validated input | 1 | Completed and validated in 8.92 seconds; first SDK chunk and ADK content both at 7.48 seconds |
 | Isolated reporter from linked checkpoints | 1 | Returned in 21.53 seconds; schema passed but manual review found inaccurate membership statements |
-| **Total** | **14** | **No approved full-workflow result or accuracy metrics** |
+| Revised reporter with source quotations and structured references | 1 | Passed validation in 27.70 seconds; 30 exact quotations and no membership-range prose |
+| **Total** | **15** | **All stages have validated outputs via recovery; no fresh reliable full run demonstrated** |
 
 The approved allowance is exhausted. After the recovery stopped on its first
 failure, the final call was used for the separately agreed isolated challenger
@@ -164,9 +166,37 @@ Tests cover the actual offline ADK workflow with the revised schema, fabricated
 and wrong-member observations, unknown/nonmember/duplicate references, ASCII and
 Unicode ID ranges in prose, legacy schema rejection, and both current and legacy
 UI paths. All 44 offline tests passed. No additional inference or deployment was
-performed. The revised schema has not been tested live; hypotheses can still be
-wrong despite valid references and require human review. No claim of reliable
-full-workflow completion is justified by these offline checks.
+performed during implementation. Hypotheses can still be wrong despite valid
+references and require human review. No claim of reliable full-workflow completion
+is justified by these offline checks.
+
+## Revised reporter live validation
+
+The user separately approved one call with the revised reporter schema and
+instruction, no retries, and a 90-second timeout. The linked investigation and
+challenger checkpoints were revalidated before inference. This call completed
+in 27.704 seconds. SDK entry was at 1.000 seconds; the first SDK chunk arrived at
+20.110 seconds and first ADK content at 20.125 seconds. Both stream end and final
+ADK output were at 27.704 seconds. Local evidence:
+`data/live-tests/20261020T101151Z-reporter-diagnostic.json`.
+
+All three explanations passed the current shared report validator. All 30 source
+observations were exact quotations belonging to their clusters. Hypothesis and
+missing-information references were unique valid members, and no prose claim-ID
+ranges appeared. Manual inspection found no recurrence of the prior inclusion of
+unassigned C012 or C022. Common causes and suspected duplicates remain hypotheses;
+the three challenger objections remain unresolved, with no human approval implied.
+
+Provider usage was 2,638 prompt tokens, 1,504 answer tokens and 1,464 thinking
+tokens (5,606 total), not an invoiced cost. Exactly one SDK generation call was
+observed, with retries and automatic continuation disabled. The allowance is now
+exhausted. No source code changed for this live check, so the previously passing
+44-test offline suite remains the current test result.
+
+All stages now have validated outputs on this 50-claim synthetic fixture across
+checkpoint recovery and separate diagnostics, including the revised reporter.
+That does not demonstrate a reliable fresh end-to-end run or real-world accuracy.
+Public paid calls remain disabled and the deployed service was not changed.
 
 ```powershell
 python -m scripts.diagnose_reporter data/live-tests/20261020T094655Z.json data/live-tests/20261020T095303Z-challenger-diagnostic.json --inspect-only

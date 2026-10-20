@@ -242,7 +242,8 @@ workflow remains unvalidated.
 The reporter now uses exact source quotations and explicit member references,
 validated before display. ID ranges in hypothesis prose are rejected, and older
 reports that fail the new checks show a warning. This correction passes offline
-tests but has not been validated with a new live call. References establish source
+tests and passed an isolated live test in 27.70 seconds with 30 exact source
+quotations and valid member references. References establish source
 and membership fidelity; they do not establish semantic truth or common cause.
 See [the live validation record](docs/vertex-validation.md).
 The public container remains pinned to the earlier rules-only release; these new

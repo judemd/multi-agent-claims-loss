@@ -8,7 +8,9 @@ reporter returned in 21.53 seconds and passed schema checks, but failed manual
 factual review because its prose includes unassigned claims in membership ranges;
 see [the detailed Vertex validation](vertex-validation.md) for limits and exact
 results. An offline correction now validates explicit member references and source
-quotations; the revised reporter has not been tested live. Public paid calls remain disabled.
+quotations. The revised reporter subsequently passed one isolated live test in
+27.70 seconds with 30 exact source quotations and valid member references. A fresh
+reliable full workflow remains unverified. Public paid calls remain disabled.
 
 ## Deployment verification — 20 October 2026
 
